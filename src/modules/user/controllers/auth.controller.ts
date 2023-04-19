@@ -7,6 +7,7 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
+  Request,
 } from '@nestjs/common';
 import { SignInDto } from '../dtos';
 import { AuthService } from '../services';
@@ -16,6 +17,12 @@ import { jwtAuthGuard } from '../guards';
 @UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Get()
+  @UseGuards(jwtAuthGuard)
+  getAuthenticated(@Request() req) {
+    return req.user;
+  }
 
   @Post('/sign-in')
   signIn(@Body() dto: SignInDto) {

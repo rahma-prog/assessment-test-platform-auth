@@ -1,13 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { HttpExceptionMessage } from 'src/shared/enums';
 import { Repository } from 'typeorm';
 import { SignInDto } from '../dtos';
 import { UserEntity } from '../entities';
-import { AuthResponse } from '../types';
-import { JwtService } from '@nestjs/jwt';
-import { HttpExceptionMessage } from 'src/shared/enums';
-import * as bcrypt from 'bcrypt';
 import { UserRole } from '../enums';
+import { AuthResponse } from '../types';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +16,7 @@ export class AuthService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
     private jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async signIn(dto: SignInDto): Promise<AuthResponse> {
@@ -37,7 +39,8 @@ export class AuthService {
 
     const payload = { id: foundUser.id, email: foundUser.email };
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: 'jhkjhkjhj',
+      secret: this.configService.get<string>('JWT_SECRET_KEY'),
+      expiresIn: this.configService.get<string>('JWT_EXPIRES'),
     });
     return {
       user: foundUser,
