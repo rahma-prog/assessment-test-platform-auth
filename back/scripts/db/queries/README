@@ -1,0 +1,5 @@
+# This folder includes all complex db queries that are
+- Some db functions, we add them on db migrations
+- Some queries for development use
+- Some queries for statistics
+- We might execute them manually, or in automated scripts separated from our backend server.

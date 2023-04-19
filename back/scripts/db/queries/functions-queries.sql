@@ -1,0 +1,14 @@
+CREATE OR REPLACE FUNCTION IS_TIMEZONE(TZ TEXT) RETURNS 
+BOOLEAN AS 
+	$$ DECLARE bool BOOLEAN;
+	BEGIN IF (tz IS NULL) THEN RETURN TRUE;
+	END IF;
+	SELECT TRUE INTO bool
+	FROM pg_timezone_names
+	WHERE
+	    LOWER(name) = LOWER(tz)
+	    OR LOWER(abbrev) = LOWER(tz);
+	RETURN FOUND;
+END; 
+
+$$ language plpgsql STABLE;
