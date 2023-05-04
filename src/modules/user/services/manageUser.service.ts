@@ -1,13 +1,14 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { HttpExceptionMessage } from 'src/shared/enums';
+import { Not, Repository } from 'typeorm';
 import { UserDto } from '../dtos/user.dto';
 import { UserEntity } from '../entities';
-import { HttpExceptionMessage } from 'src/shared/enums';
 
 @Injectable()
 export class UserService {
@@ -16,15 +17,16 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  async createUser(userDto: UserDto): Promise<UserEntity> {
-    const existingUser = await this.userRepository.findOne({
-      where: { id: userDto.id },
-    });
-    if (existingUser) {
-      throw new UnauthorizedException(HttpExceptionMessage.USER_ALREADY_EXISTS);
-    }
+  async getAll(): Promise<UserEntity[]> {
+    return this.userRepository.find();
+  }
 
-    const user = this.userRepository.create(userDto);
+  async createUser(userDto: UserDto): Promise<UserEntity> {
+    await this.validateEmailExistence(userDto.email);
+    const user = this.userRepository.create({
+      ...userDto,
+      password: await bcrypt.hash(userDto.password, 8),
+    });
     return this.userRepository.save(user);
   }
 
@@ -37,6 +39,7 @@ export class UserService {
   }
 
   async updateUser(id: string, userDto: UserDto): Promise<UserEntity> {
+    await this.validateEmailExistence(userDto.email, id);
     const user = await this.getUserById(id);
     user.name = userDto.name;
     user.email = userDto.email;
@@ -48,5 +51,14 @@ export class UserService {
   async deleteUser(id: string): Promise<void> {
     const user = await this.getUserById(id);
     await this.userRepository.remove(user);
+  }
+
+  async validateEmailExistence(email: string, toUpdateId?: string) {
+    const existingUser = await this.userRepository.findOne({
+      where: { email, id: toUpdateId ? Not(toUpdateId) : undefined },
+    });
+    if (existingUser) {
+      throw new BadRequestException(HttpExceptionMessage.USER_ALREADY_EXISTS);
+    }
   }
 }

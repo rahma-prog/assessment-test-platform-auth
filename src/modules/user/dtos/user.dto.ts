@@ -1,8 +1,7 @@
-import { IsString, Length, IsEmail, IsEnum, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, Length } from 'class-validator';
 import { UserRole } from '../enums';
 
 export class UserDto {
-  id: string;
   @IsString()
   @IsNotEmpty()
   @Length(1, 20)

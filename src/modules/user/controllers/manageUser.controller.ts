@@ -8,32 +8,42 @@ import {
   Param,
   ClassSerializerInterceptor,
   UseInterceptors,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UserDto } from '../dtos/user.dto';
+import { jwtAuthGuard } from '../guards';
 import { UserService } from '../services/manageUser.service';
 
+// TODO: ADD USER ACCESS GUARD ()
 @Controller('users')
+@UseGuards(jwtAuthGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 export class ManageUserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('/create-user')
+  @Get()
+  getAll() {
+    return this.userService.getAll();
+  }
+
+  @Get(':id')
+  getUserById(@Param('id', ParseIntPipe) id: string) {
+    return this.userService.getUserById(id);
+  }
+
+  @Post()
   createOne(@Body() userDto: UserDto) {
     return this.userService.createUser(userDto);
   }
 
-  @Get()
-  getUserById(@Param('id') id: string) {
-    return this.userService.getUserById(id);
-  }
-
   @Put(':id')
-  updateOne(@Param('id') id: string, @Body() userDto: UserDto) {
+  updateOne(@Param('id', ParseIntPipe) id: string, @Body() userDto: UserDto) {
     return this.userService.updateUser(id, userDto);
   }
 
   @Delete(':id')
-  deleteOne(@Param('id') id: string) {
+  deleteOne(@Param('id', ParseIntPipe) id: string) {
     return this.userService.deleteUser(id);
   }
 }
