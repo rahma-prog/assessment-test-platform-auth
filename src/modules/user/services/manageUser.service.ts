@@ -18,7 +18,11 @@ export class UserService {
   ) {}
 
   async getAll(): Promise<UserEntity[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({
+      order: {
+        updatedAt: 'DESC',
+      },
+    });
   }
 
   async createUser(userDto: UserDto): Promise<UserEntity> {
